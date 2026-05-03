@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeCraft — Professional Typing Platform</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <h1>TypeCraft</h1>
+    <span>Precision Typing Platform</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Practice</div>
+    <div class="nav-item active" data-section="tests">
+      <span class="nav-icon">⌨️</span> Tests
+    </div>
+    <div class="nav-item" data-section="lessons">
+      <span class="nav-icon">📖</span> Lessons
+    </div>
+    <div class="nav-item" data-section="games">
+      <span class="nav-icon">🎮</span> Games
+    </div>
+
+    <div class="nav-section-label" style="margin-top:8px">Analytics</div>
+    <div class="nav-item" data-section="progress">
+      <span class="nav-icon">📈</span> Progress
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-stats">
+      <div class="stat-pill">
+        <span class="val" id="sidebar-tests">—</span>
+        <span class="lbl">Tests</span>
+      </div>
+      <div class="stat-pill">
+        <span class="val" id="sidebar-best">—</span>
+        <span class="lbl">Best WPM</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="topbar-title" id="topbar-title">Typing Tests</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="loadNewTest()" title="New text (Tab)">↻ New Text</button>
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- ═══════════════════════════════════════
+         TESTS SECTION
+    ═══════════════════════════════════════ -->
+    <div id="tests" class="section active">
+
+      <!-- Mode selector -->
+      <div class="test-grid">
+        <div class="test-card" data-mode="timed" data-duration="60"
+             onclick="selectMode('timed', 60)">
+          <div class="test-card-icon">⏱️</div>
+          <div class="test-card-title">1 Minute</div>
+          <div class="test-card-sub">Quick speed check</div>
+        </div>
+        <div class="test-card" data-mode="timed" data-duration="180"
+             onclick="selectMode('timed', 180)">
+          <div class="test-card-icon">🕒</div>
+          <div class="test-card-title">3 Minutes</div>
+          <div class="test-card-sub">Standard assessment</div>
+        </div>
+        <div class="test-card" data-mode="timed" data-duration="300"
+             onclick="selectMode('timed', 300)">
+          <div class="test-card-icon">🕔</div>
+          <div class="test-card-title">5 Minutes</div>
+          <div class="test-card-sub">Endurance challenge</div>
+        </div>
+        <div class="test-card" data-mode="page" data-duration="0"
+             onclick="selectMode('page', 0)">
+          <div class="test-card-icon">📄</div>
+          <div class="test-card-title">Page Test</div>
+          <div class="test-card-sub">Type full passage</div>
+        </div>
+      </div>
+
+      <!-- Typing Panel -->
+      <div class="card" id="test-panel">
+        <div class="card-header">
+          <h2>Typing Test</h2>
+          <div class="topbar-actions">
+            <span style="font-size:0.78rem;color:var(--text-muted)">Press <kbd style="background:var(--bg3);border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:var(--font-mono);font-size:0.75rem">Tab</kbd> to restart</span>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- Controls row -->
+          <div class="test-controls">
+            <div class="test-timer" id="timer-val">01:00</div>
+            <div class="live-metrics">
+              <div class="metric-badge">
+                <span class="m-val" id="live-wpm">0</span>
+                <span class="m-lbl">WPM</span>
+              </div>
+              <div class="metric-badge">
+                <span class="m-val" id="live-acc">100</span>
+                <span class="m-lbl">Acc %</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="progress-bar-outer">
+            <div class="progress-bar-inner" id="progress-bar" style="width:0%"></div>
+          </div>
+
+          <!-- Text display -->
+          <div class="typing-area-wrapper" id="typing-wrapper">
+            <div id="text-display"></div>
+            <div class="typing-hint" id="test-hint">Click here or start typing…</div>
+            <input id="typing-input" type="text" autocomplete="off"
+                   autocorrect="off" autocapitalize="off" spellcheck="false"
+                   tabindex="-1" aria-hidden="true">
+          </div>
+
+          <!-- Action buttons -->
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="focusInput(); loadNewTest()">▶ Start / Restart</button>
+            <button class="btn btn-secondary" onclick="loadNewTest()">↻ New Text</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Recent history (compact) on test page -->
+      <div class="card" style="margin-top:24px">
+        <div class="card-header">
+          <h2>Recent Results</h2>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('progress')">View All →</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="history-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>WPM</th>
+                  <th>Accuracy</th>
+                  <th>Time</th>
+                  <th>Errors</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="history-tbody"></tbody>
+            </table>
+            <div id="history-empty" class="empty-state">
+              <div class="es-icon">⌨️</div>
+              <p>No tests yet — complete your first test above!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tests -->
+
+    <!-- ═══════════════════════════════════════
+         LESSONS SECTION
+    ═══════════════════════════════════════ -->
+    <div id="lessons" class="section">
+      <div style="margin-bottom:24px">
+        <h2 style="font-family:var(--font-head);font-size:1.6rem;margin-bottom:6px">Skill-Based Lessons</h2>
+        <p style="color:var(--text-muted);font-size:0.9rem">Master your keyboard row by row, key by key.</p>
+      </div>
+      <div class="lessons-grid" id="lessons-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         GAMES SECTION
+    ═══════════════════════════════════════ -->
+    <div id="games" class="section">
+      <div style="margin-bottom:24px">
+        <h2 style="font-family:var(--font-head);font-size:1.6rem;margin-bottom:6px">Typing Games</h2>
+        <p style="color:var(--text-muted);font-size:0.9rem">Make practice fun with these challenges.</p>
+      </div>
+      <div class="games-grid">
+        <div class="game-card" onclick="navigate('tests')">
+          <div class="gc-icon">⚡</div>
+          <h3>Speed Rush</h3>
+          <p>Race against the clock. How fast can you go in 30 seconds?</p>
+        </div>
+        <div class="game-card">
+          <div class="gc-icon">🎯</div>
+          <h3>Accuracy Sniper</h3>
+          <p>Precision over speed — zero errors challenge.</p>
+          <div class="coming-soon">Coming Soon</div>
+        </div>
+        <div class="game-card">
+          <div class="gc-icon">🌊</div>
+          <h3>Word Flood</h3>
+          <p>Words fall from above — type them before they hit the bottom.</p>
+          <div class="coming-soon">Coming Soon</div>
+        </div>
+        <div class="game-card">
+          <div class="gc-icon">🔥</div>
+          <h3>Streak Master</h3>
+          <p>Build consecutive correct keystroke chains without breaking.</p>
+          <div class="coming-soon">Coming Soon</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         PROGRESS SECTION
+    ═══════════════════════════════════════ -->
+    <div id="progress" class="section">
+      <div style="margin-bottom:24px">
+        <h2 style="font-family:var(--font-head);font-size:1.6rem;margin-bottom:6px">Your Progress</h2>
+        <p style="color:var(--text-muted);font-size:0.9rem">Track your improvement over the last 10 tests.</p>
+      </div>
+
+      <!-- Chart card -->
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header"><h2>Performance Trend</h2></div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="progress-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full history table -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Full Test History</h2>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="history-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>WPM</th>
+                  <th>Accuracy</th>
+                  <th>Duration</th>
+                  <th>Errors</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="history-tbody-2"></tbody>
+            </table>
+            <div id="history-empty-2" class="empty-state">
+              <div class="es-icon">📊</div>
+              <p>No test history yet. Take a test to see your results here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div><!-- /main -->
+
+<!-- ── Result Modal ── -->
+<div class="modal-overlay" id="result-modal-overlay" onclick="closeModal()">
+  <div class="result-modal" onclick="event.stopPropagation()">
+    <h2>Test Complete! 🎉</h2>
+    <p class="sub">Here are your results</p>
+
+    <div class="result-big-stats">
+      <div class="rbs-item">
+        <span class="rbs-val" id="res-wpm">—</span>
+        <span class="rbs-lbl">WPM</span>
+      </div>
+      <div class="rbs-item">
+        <span class="rbs-val" id="res-acc">—</span>
+        <span class="rbs-lbl">Accuracy</span>
+      </div>
+    </div>
+
+    <div class="result-secondary">
+      <span>⌨️ <strong id="res-chars">—</strong> chars</span>
+      <span>❌ <strong id="res-errors">—</strong> errors</span>
+      <span>⏱ <strong id="res-time">—</strong></span>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="closeModal(); loadNewTest(); focusInput()">▶ Try Again</button>
+      <button class="btn btn-secondary" onclick="closeModal(); navigate('progress')">📈 View Progress</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Certificate Print Area ── -->
+<div id="cert-print"></div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+// Patch: also populate the progress section's history table
+const origRenderHistory = window.renderHistory || null;
+document.addEventListener('DOMContentLoaded', () => {
+  // Augment loadHistory to also fill progress table
+  const _orig = window.loadHistory;
+  window.loadHistory = async function() {
+    await _orig();
+    const rows = document.getElementById('history-tbody')?.innerHTML || '';
+    const tbody2 = document.getElementById('history-tbody-2');
+    const empty2 = document.getElementById('history-empty-2');
+    if (tbody2) tbody2.innerHTML = rows;
+    if (State.history.length === 0) {
+      empty2?.classList.remove('d-none');
+    } else {
+      empty2?.classList.add('d-none');
+    }
+  };
+});
+</script>
+</body>
+</html>
